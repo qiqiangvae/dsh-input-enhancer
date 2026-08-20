@@ -8,13 +8,13 @@ A **DeepSeek Harness Web plugin** that makes the chat composer better suited to 
 
 | Feature | What it does | How |
 | --- | --- | --- |
-| 🔒 **Lock Enter-send** | While locked, Enter won't accidentally send; you can keep editing | Click the lock button |
+| 🔒 **Lock Enter-send** | While locked, Enter won't accidentally send; you can keep editing | Click the lock button / `Cmd/Ctrl+Alt+L` |
 | 📏 **Enlarge composer** | Locking grows the composer (`min-height: 40vh`, ceiling `60vh`) for long drafts | Automatic on lock |
 | ⚡ **Triple-Enter send** | Press Enter 3 times (≤800ms apart) to unlock and send immediately | Press Enter while locked |
 | 🔢 **Character count** | A live character-count badge appears after the lock button while non-empty | Automatic |
 | ⚠️ **Long-text warning** | Past 800 characters the badge turns amber, so the length is clear before sending | Automatic |
 
-- **Lock button**: registered in the official `conversation.input.right` slot, near the send button; a prominent red fill when locked, with a state tooltip on hover.
+- **Lock button**: registered in the official `conversation.input.right` slot, near the send button; a prominent red fill when locked, with a state tooltip on hover. It can also be toggled with `Ctrl/Cmd+Alt+L` (only while the composer is focused).
 - **Lock ⇔ enlarge coupling**: locking enters "long-form editing mode"; unlocking restores the default size.
 - **Character count is independent**: it shows whenever the composer is non-empty, locked or not.
 - **Long-text warning**: once the draft reaches the threshold (800 chars by default), the count badge turns amber with a "long text" hover hint.
@@ -49,9 +49,11 @@ While locked, to send without first unlocking: **press Enter 3 times** to unlock
 - Blocked while locked: plain `Enter`, `Ctrl+Enter` / `Cmd+Enter`, other Enter combos that reach the official submit path.
 - Preserved: `Shift+Enter` newline, IME candidate confirmation, edit/copy/paste/attachments, and mouse-click send (the lock only guards the keyboard).
 
-## Keyboard shortcut (future work)
+## Keyboard shortcut
 
-Global shortcuts such as `Ctrl+Alt+L` (`Cmd+Alt+L` on macOS) are listed as **future work**. Use the lock button to lock/unlock; triple-Enter serves as the locked-state "unlock and send" escape hatch.
+**`Ctrl+Alt+L`** (Windows/Linux) or **`Cmd+Alt+L`** (macOS) toggles the current composer's lock without reaching for the lock button. It only acts while the composer is focused.
+
+> Why not `Ctrl/Cmd+L`: Chrome / Edge reserve `Ctrl+L` and macOS reserves `Cmd+L` for the address bar, which intercepts them first; hence `Ctrl/Cmd+Alt+L`.
 
 ## Requirements
 
@@ -106,7 +108,8 @@ Then restart `dsh web` and refresh the page.
 
 3. Toggle the lock:
 
-   - Click the lock button in the composer tool row.
+   - Click the lock button in the composer tool row;
+   - or press `Ctrl+Alt+L` (Windows/Linux) / `Cmd+Alt+L` (macOS), which only acts while the composer is focused.
 
 4. While locked:
 
@@ -147,7 +150,9 @@ The plugin is zero-configuration. It requires no API key, no settings fields, an
 
 ### The shortcut is unavailable
 
-Keyboard shortcut support has not been enabled yet and is listed as future work. Use the lock button beside the composer instead. Lock state is per session: a newly opened session starts unlocked.
+1. Make sure the composer is focused (the shortcut only acts while it is).
+2. Use `Ctrl+Alt+L` (Windows/Linux) or `Cmd+Alt+L` (macOS), not `Ctrl/Cmd+L` (reserved for the address bar).
+3. Some Linux desktop environments bind `Ctrl+Alt+L` to a system action (lock screen / layout switch), which will intercept it; use the lock button instead.
 
 ### A message was sent while locked
 

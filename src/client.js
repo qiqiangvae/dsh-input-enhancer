@@ -13,11 +13,13 @@ window.__ModuleLoader__.load({
     var STYLE_ID = 'dsh-input-enhancer-style'
 
     /**
-     * Keyboard shortcut support is intentionally disabled in this release.
-     * The code path below is kept for a future cross-browser implementation;
-     * until then the lock button is the supported control.
+     * Keyboard shortcut for the lock: Ctrl+Alt+L (Windows/Linux) or
+     * Cmd+Alt+L (macOS). Enabled by default; it toggles the current session's
+     * lock and only acts while the composer is focused. Deliberately NOT
+     * Ctrl/Cmd+L (reserved for the browser address bar) and NOT Ctrl+Shift+L
+     * (Edge reserves it for "paste and search").
      */
-    var SHORTCUT_ENABLED = false
+    var SHORTCUT_ENABLED = true
 
     var TRIPLE_TAP_WINDOW_MS = 800
 
@@ -169,14 +171,12 @@ window.__ModuleLoader__.load({
       }
 
       document.body.appendChild(root)
-      console.log('[DEBUG-fw-1] mounted', anchor.x, anchor.y, 'particles', root.childElementCount, 'at', Date.now())
 
       var removed = false
       function cleanup() {
         if (removed) return
         removed = true
         if (root.parentNode) root.parentNode.removeChild(root)
-        console.log('[DEBUG-fw-2] cleanup fired at', Date.now(), 'removedFromBody', root.parentNode === null)
       }
       setTimeout(cleanup, BURST_MS)
       return cleanup
@@ -421,9 +421,8 @@ window.__ModuleLoader__.load({
         // Mount the firework onto document.body the moment the burst starts,
         // anchored at the last pre-shrink lock-button center.
         React.useEffect(function () {
-          if (!bursting) { console.log('[DEBUG-fw-0] effect ran, bursting=false'); return }
+          if (!bursting) return
           var anchor = lastAnchorRef.current || { x: 0, y: 0 }
-          console.log('[DEBUG-fw-0] effect ran, bursting=true, anchor', anchor.x, anchor.y)
           return mountFirework(anchor)
         }, [bursting])
 
@@ -449,7 +448,7 @@ window.__ModuleLoader__.load({
       }
 
       function onKeyDown(event) {
-        // Reserved for future development: cross-browser shortcut support.
+        // Lock shortcut: Ctrl/Cmd+Alt+L toggles the current session's lock.
         if (SHORTCUT_ENABLED && isLockShortcut(event)) {
           if (event.isComposing || event.keyCode === 229) return
           var shortcutSessionId = sessionIdFromTarget(event.target)
@@ -534,7 +533,8 @@ window.__ModuleLoader__.load({
     }
 
     /* =========================================================================
-     * Default shortcut matcher (Ctrl/Cmd+Alt+L), reserved for future work.
+     * Default shortcut matcher: Ctrl/Cmd+Alt+L. Toggles the lock on the
+     * focused composer session.
      * ======================================================================= */
 
     function isLockShortcut(event) {
