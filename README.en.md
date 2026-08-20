@@ -2,73 +2,56 @@
 
 [中文](README.md) | English
 
-A **DeepSeek Harness Web plugin** that enhances the chat composer:
+A **DeepSeek Harness Web plugin** that makes the chat composer better suited to long-form editing.
 
-- Click the lock button next to the composer to **lock Enter-send** and **enlarge the composer**.
-- While locked, you can keep editing the text in the composer, but pressing Enter will not send it.
-- Click the button again to unlock and restore the default composer size and Enter-send.
+## Features
 
-## Why this plugin exists
+| Feature | What it does | How |
+| --- | --- | --- |
+| 🔒 **Lock Enter-send** | While locked, Enter won't accidentally send; you can keep editing | Click the lock button |
+| 📏 **Enlarge composer** | Locking grows the composer (`min-height: 40vh`, ceiling `60vh`) for long drafts | Automatic on lock |
+| ⚡ **Triple-Enter send** | Press Enter 3 times (≤800ms apart) to unlock and send immediately | Press Enter while locked |
+| 🔢 **Character count** | A live character-count badge appears after the lock button while non-empty | Automatic |
+| ⚠️ **Long-text warning** | Past 800 characters the badge turns amber, so the length is clear before sending | Automatic |
 
-The DeepSeek Harness Web composer sends the current text as soon as Enter is pressed, and its height is limited. That makes accidental sends and cramped long-form editing easy when:
+- **Lock button**: registered in the official `conversation.input.right` slot, near the send button; a prominent red fill when locked, with a state tooltip on hover.
+- **Lock ⇔ enlarge coupling**: locking enters "long-form editing mode"; unlocking restores the default size.
+- **Character count is independent**: it shows whenever the composer is non-empty, locked or not.
+- **Long-text warning**: once the draft reaches the threshold (800 chars by default), the count badge turns amber with a "long text" hover hint.
+- **Per-session state**: each conversation keeps its own lock flag.
 
-- Enter is pressed only to confirm an IME candidate;
-- the user is editing a long prompt, code, or structured text and hits Enter by mistake;
-- the user needs to write a lot of text but the default composer is too small;
-- the text in the composer is still incomplete and is submitted before the user intended.
+### Lock state & composer
 
-This plugin adds a "lock before send" guard and, while locked, enlarges the composer for long-form editing.
-
-## What it focuses on
-
-- **Lock button**: registered in the official `conversation.input.right` slot, next to the model selector and send button; the locked state uses a prominent red fill.
-- **Lock ⇔ enlarge coupling**: locking enters "long-form editing mode" — the composer grows immediately (`min-height: 40vh`) and the auto-grow ceiling rises from the default `336px` to `60vh`. Unlocking restores the default size.
-- **Per-session state**: each conversation has its own lock flag.
-- **No composer replacement**: it only intercepts the keyboard submit path and overlays enlargement styles, keeping the official input state machine, command menu, queue, and attachment behavior.
-- **IME-friendly**: Enter during composition is never intercepted.
-
-## Lock state styles
-
-| State | Lock icon style | Composer | Meaning |
+| State | Lock icon | Composer | Enter behavior |
 | --- | --- | --- | --- |
-| Unlocked (normal) | Gray outlined icon | Default size | Enter can send messages normally |
-| Locked | **Red fill with a white lock icon** | **Enlarged** | Enter cannot send messages |
+| Unlocked | Gray outlined | Default size | Sends normally |
+| Locked | **Red fill + white lock icon** | **Enlarged** | Does not send (3× Enter unlocks and sends) |
 
-Hovering over the lock icon shows a state-specific tooltip:
+Tooltip:
 
 - Unlocked: `Unlocked: composer is normal size, Enter sends normally`
-- Locked: `Locked and enlarged: Enter will not send`
+- Locked: `Locked and enlarged: Enter will not send. Press Enter 3 times to unlock and send`
 
-## What it prevents
+### Triple-Enter (locked-state escape hatch)
 
-While locked, the following keyboard sends are blocked:
+While locked, to send without first unlocking: **press Enter 3 times** to unlock and send immediately.
 
-- plain `Enter` send;
-- `Ctrl+Enter` / `Cmd+Enter` send;
-- other Enter combinations that reach the official composer submit path;
-- accidental submission of unfinished composer text.
+- The first two Enters have no side effect (no send, no newline); they only count. The lock icon turns into the current count (1st shows "1", 2nd shows "2") with a growing pulse.
+- The 3rd Enter plays a **firework burst** (colored particles flying out from the lock button for ~1 second), then unlocks and sends the current content.
+- Timeout, any other key, or a session switch resets the count.
 
-Normal behaviors remain available:
+> Triple-tap applies only while locked; an empty composer will not send.
 
-- `Shift+Enter` still inserts a newline;
-- IME candidate confirmation still works;
-- editing, copy, paste, and attachments are unaffected;
-- clicking the official send button still sends; the lock only guards the keyboard.
+## Guarantees
 
-## Triple-Enter to unlock and send
-
-While locked, if you want to send the current composer content without first unlocking, **press Enter 3 times** (each within 800ms of the previous) to unlock and send immediately.
-
-- The first two Enters have no side effect (no send, no newline); they only advance the counter.
-- After 2 taps the lock icon **flashes** once to hint "one more to send".
-- The 3rd Enter unlocks and immediately sends the current composer content.
-- The counter resets when the window expires, when any other key is pressed, or when you switch sessions.
-
-> Note: the triple-tap only applies to a locked composer; an empty composer will not send.
+- **No composer replacement**: intercepts only the keyboard submit path and overlays enlargement styles, keeping the official input state machine, command menu, queue, and attachments.
+- **IME-friendly**: Enter during composition is never intercepted.
+- Blocked while locked: plain `Enter`, `Ctrl+Enter` / `Cmd+Enter`, other Enter combos that reach the official submit path.
+- Preserved: `Shift+Enter` newline, IME candidate confirmation, edit/copy/paste/attachments, and mouse-click send (the lock only guards the keyboard).
 
 ## Keyboard shortcut (future work)
 
-Global keyboard shortcuts such as `Ctrl+Alt+L` (`Cmd+Alt+L` on macOS) are currently listed as **future work**. For now, use the lock button beside the composer to lock and unlock; the triple-Enter gesture above serves as the locked-state "unlock and send" escape hatch.
+Global shortcuts such as `Ctrl+Alt+L` (`Cmd+Alt+L` on macOS) are listed as **future work**. Use the lock button to lock/unlock; triple-Enter serves as the locked-state "unlock and send" escape hatch.
 
 ## Requirements
 
@@ -133,9 +116,11 @@ Then restart `dsh web` and refresh the page.
    - `Shift+Enter` still inserts a newline.
    - IME composition Enter still confirms the candidate.
    - Clicking the official send button still sends; the lock only guards keyboard input.
-   - Press **Enter 3 times** (within 800ms each) to unlock and send immediately.
+   - Press **Enter 3 times** (within 800ms each) to unlock and send immediately (the lock icon shows "1"/"2" on the first two taps, then plays an unlock burst on the third).
 
 5. Lock state is per session and is kept in memory only. It is cleared on refresh or restart.
+
+6. The character count is independent of the lock: whenever the composer is non-empty (locked or not), a character-count badge appears right after the lock button.
 
 ## Configuration
 
@@ -200,7 +185,7 @@ dsh-input-enhancer/
 ├── cordis.patch.yml      # profile bundle patch
 ├── src/
 │   ├── index.js          # Host half (dependency-free no-op)
-│   └── client.js         # Web half: button, Enter interception, enlarge styles
+│   └── client.js         # Web half: layered orchestration (lock feature + char count + long-text warning)
 ├── lib/                  # prebuilt artifacts
 ├── scripts/
 │   ├── build.mjs
@@ -219,7 +204,12 @@ dsh plugin --profile web remove dsh-enter-lock
 dsh plugin --profile web add github:qiqiangvae/dsh-input-enhancer
 ```
 
-The new release adds "lock to enlarge the composer" on top of the existing Enter-send lock, for long-form editing.
+Compared with `dsh-enter-lock`, this plugin adds:
+
+- **Enlarge composer**: locking grows the composer for long-form editing;
+- **Triple-Enter send**: press Enter 3 times to unlock and send immediately (with count flashes and an unlock-burst animation);
+- **Character count**: a live character count, independent of the lock;
+- **Long-text warning**: past 800 characters the badge turns amber.
 
 ## License
 
