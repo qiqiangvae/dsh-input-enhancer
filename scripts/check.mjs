@@ -10,7 +10,9 @@ for (const [name, content, required] of [
   ['Client', client, "document.addEventListener('keydown', onKeyDown, true)"],
   ['Client', client, 'conversation.input.right'],
   ['Client', client, 'data-composer-card'],
-  ['Client', client, 'data-dsh-enter-lock'],
+  ['Client', client, 'data-dsh-input-enhancer'],
+  ['Client', client, 'data-dsh-composer-enlarged'],
+  ['Client', client, '--dsh-composer-text-max-height'],
   ['Client', client, 'event.stopImmediatePropagation'],
   ['Client', client, 'event.isComposing || event.keyCode === 229'],
   ['Client', client, 'event.altKey !== true'],
@@ -25,4 +27,8 @@ if (client.includes('settingsScope') || client.includes('settings-not-exposed'))
   throw new Error('Client bundle unexpectedly depends on the Host settings API')
 }
 
-console.log('dsh-enter-lock bundle artifacts passed structural checks.')
+if (client.includes('dsh-enter-lock') || host.includes('dsh-enter-lock')) {
+  throw new Error('Stale pre-rename fragment "dsh-enter-lock" still present in a bundle')
+}
+
+console.log('dsh-input-enhancer bundle artifacts passed structural checks.')

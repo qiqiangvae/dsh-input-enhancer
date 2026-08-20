@@ -1,7 +1,7 @@
 {
-  "name": "dsh-enter-lock",
-  "version": "0.3.0",
-  "description": "DeepSeek Harness plugin that locks the web chat composer Enter-send. Toggle with a lock button or Ctrl+Alt+L to prevent accidental sends while typing or editing long prompts; unlock to send. IME-safe and per-session.",
+  "name": "dsh-input-enhancer",
+  "version": "0.4.0",
+  "description": "DeepSeek Harness plugin that enhances the web chat composer: lock Enter-send to prevent accidental sends, and auto-enlarge the composer while locked for long-form editing. IME-safe and per-session.",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
@@ -25,7 +25,9 @@
     "composer",
     "enter-key",
     "keyboard-shortcuts",
-    "enter-lock"
+    "enter-lock",
+    "input-enhancer",
+    "composer-enlarge"
   ],
   "dsh": {
     "bundle": {
@@ -51,10 +53,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AIFireForAll/dsh-enter-lock.git"
+    "url": "git+https://github.com/qiqiangvae/dsh-input-enhancer.git"
   },
   "bugs": {
-    "url": "https://github.com/AIFireForAll/dsh-enter-lock/issues"
+    "url": "https://github.com/qiqiangvae/dsh-input-enhancer/issues"
   },
-  "homepage": "https://github.com/AIFireForAll/dsh-enter-lock#readme"
+  "homepage": "https://github.com/qiqiangvae/dsh-input-enhancer#readme"
 }
