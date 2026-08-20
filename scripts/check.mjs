@@ -27,6 +27,13 @@ for (const [name, content, required] of [
   ['Client', client, 'event.altKey !== true'],
   ['Client', client, "event.code === 'KeyL'"],
   ['Client', client, 'SHORTCUT_ENABLED = true'],
+  ['Client', client, 'data-dsh-stage'],
+  ['Client', client, 'data-dsh-stage-filled'],
+  ['Client', client, 'createStageFeature'],
+  ['Client', client, 'STAGE_SHORTCUT_ENABLED'],
+  ['Client', client, "code === 'KeyK'"],
+  ['Client', client, 'dsh-input-enhancer-stage'],
+  ['Client', client, 'StageIcon'],
 ]) {
   if (!content.includes(required)) {
     throw new Error(`${name} bundle is missing required fragment: ${required}`)

@@ -13,6 +13,7 @@ A **DeepSeek Harness Web plugin** that makes the chat composer better suited to 
 | ⚡ **Triple-Enter send** | Press Enter 3 times (≤800ms apart) to unlock and send immediately | Press Enter while locked |
 | 🔢 **Character count** | A live character-count badge appears after the lock button while non-empty | Automatic |
 | ⚠️ **Long-text warning** | Past 800 characters the badge turns amber, so the length is clear before sending | Automatic |
+| ⇄ **Draft swap** | Swap content between the composer and a staging slot, to park a half-finished draft for a later turn | Click the swap button / `Cmd/Ctrl+Opt+K` |
 
 - **Lock button**: registered in the official `conversation.input.right` slot, near the send button; a prominent red fill when locked, with a state tooltip on hover. It can also be toggled with `Ctrl/Cmd+Alt+L` (only while the composer is focused).
 - **Lock ⇔ enlarge coupling**: locking enters "long-form editing mode"; unlocking restores the default size.
@@ -42,6 +43,20 @@ While locked, to send without first unlocking: **press Enter 3 times** to unlock
 
 > Triple-tap applies only while locked; an empty composer will not send.
 
+### Draft swap (park a half-finished draft)
+
+While the agent is still thinking or executing, you'll often want to type the next message in advance. But sometimes you realize mid-draft that this text should wait a few turns. Park it with a direction-agnostic swap button (⇄), keep writing and sending other things, and swap it back in the right turn.
+
+- **Swap button**: registered in the `conversation.input.right` slot, just left of the lock button; the icon is ⇄ (opposing arrows, no direction bias). Clicking it swaps content between the composer and the staging slot.
+- **Atomic swap semantics**:
+  - Slot **empty** → the composer's text moves into the slot, and the composer empties;
+  - Slot **full** → the two swap: the staged draft returns to the composer, and the composer's current text moves into the slot (neither side is lost);
+  - When the slot is full the button is **highlighted**, so you can tell at a glance that a draft is parked.
+- **Shortcut** `Cmd+Opt+K` (macOS) / `Ctrl+Alt+K` (Windows/Linux) is equivalent to clicking the swap button; it only acts while the composer is focused.
+- **Per-session, in-memory only**: each conversation has its own single slot; it is cleared on refresh or restart — it only serves the temporary "park for a few turns" case, never crossing sessions or touching disk.
+
+> When both the composer and the slot hold text, clicking swap will exchange them; use accordingly.
+
 ## Guarantees
 
 - **No composer replacement**: intercepts only the keyboard submit path and overlays enlargement styles, keeping the official input state machine, command menu, queue, and attachments.
@@ -54,6 +69,10 @@ While locked, to send without first unlocking: **press Enter 3 times** to unlock
 **`Ctrl+Alt+L`** (Windows/Linux) or **`Cmd+Alt+L`** (macOS) toggles the current composer's lock without reaching for the lock button. It only acts while the composer is focused.
 
 > Why not `Ctrl/Cmd+L`: Chrome / Edge reserve `Ctrl+L` and macOS reserves `Cmd+L` for the address bar, which intercepts them first; hence `Ctrl/Cmd+Alt+L`.
+
+**`Ctrl+Alt+K`** (Windows/Linux) or **`Cmd+Opt+K`** (macOS) triggers the draft swap. It only acts while the composer is focused.
+
+> Adjacent-shortcut note: `Cmd/Ctrl+Opt/Alt+K` (draft swap) and `Cmd/Ctrl+Opt/Alt+L` (lock) are adjacent, and Opt is Alt, so mis-presses are possible — if you hit the wrong one often, prefer the corresponding icon button.
 
 ## Requirements
 
@@ -125,13 +144,21 @@ Then restart `dsh web` and refresh the page.
 
 6. The character count is independent of the lock: whenever the composer is non-empty (locked or not), a character-count badge appears right after the lock button.
 
+7. Park a half-finished draft:
+
+   - Click the swap button (⇄) left of the lock button, or press `Cmd+Opt+K` (macOS) / `Ctrl+Alt+K` (Windows/Linux);
+   - When the slot is empty, the composer's draft moves into the slot and the composer empties;
+   - When the slot is full, the two swap (the staged draft returns to the composer, the current input moves into the slot);
+   - The slot is in-memory only and is cleared on refresh.
+
 ## Configuration
 
-The plugin is zero-configuration. It requires no API key, no settings fields, and no `settings.yaml` entry. Lock state lives in browser memory only.
+The plugin is zero-configuration. It requires no API key, no settings fields, and no `settings.yaml` entry. Lock state and the staging slot live in browser memory only.
 
 ## Limitations
 
 - Lock state is browser-memory only; it does not write `settings.yaml` and makes no network requests.
+- The staging slot is likewise browser-memory only (one slot per conversation); it is cleared on refresh/restart, never crosses sessions, and is never written to disk or sent over the network.
 - The plugin uses the official `conversation.input.right` slot and does not replace the composer.
 - Enlargement is implemented via CSS variables (`min-height` and `--dsh-composer-text-max-height`); the official bottom anchor `--dsh-composer-height` re-syncs automatically as the height changes.
 
@@ -190,7 +217,7 @@ dsh-input-enhancer/
 ├── cordis.patch.yml      # profile bundle patch
 ├── src/
 │   ├── index.js          # Host half (dependency-free no-op)
-│   └── client.js         # Web half: layered orchestration (lock feature + char count + long-text warning)
+│   └── client.js         # Web half: layered orchestration (lock feature + char count + long-text warning + draft swap)
 ├── lib/                  # prebuilt artifacts
 ├── scripts/
 │   ├── build.mjs
@@ -214,7 +241,8 @@ Compared with `dsh-enter-lock`, this plugin adds:
 - **Enlarge composer**: locking grows the composer for long-form editing;
 - **Triple-Enter send**: press Enter 3 times to unlock and send immediately (with count flashes and an unlock-burst animation);
 - **Character count**: a live character count, independent of the lock;
-- **Long-text warning**: past 800 characters the badge turns amber.
+- **Long-text warning**: past 800 characters the badge turns amber;
+- **Draft swap**: a ⇄ swap button + `Cmd/Ctrl+Opt/Alt+K` to exchange half-finished drafts between the composer and a staging slot (one slot per conversation, in-memory).
 
 ## License
 

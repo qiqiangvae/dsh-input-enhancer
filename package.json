@@ -1,6 +1,6 @@
 {
   "name": "dsh-input-enhancer",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "DeepSeek Harness plugin that enhances the web chat composer: lock Enter-send to prevent accidental sends, and auto-enlarge the composer while locked for long-form editing. IME-safe and per-session.",
   "type": "module",
   "main": "lib/index.js",
