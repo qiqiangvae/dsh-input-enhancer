@@ -13,6 +13,19 @@ window.__ModuleLoader__.load({
     var STYLE_ID = 'dsh-input-enhancer-style'
 
     /**
+     * Host (DSH core) DOM contract — internal, undocumented selectors this
+     * plugin reaches into. These may drift across DSH versions: after any DSH
+     * upgrade, regression-test the four features against this table. Keeping
+     * them in one place makes the coupling explicit instead of scattering
+     * magic strings through the file.
+     */
+    var SEL = {
+      composerCard: '[data-composer-card]',
+      suggestionMenu: '[role="listbox"]',
+      inputScroll: '[data-input-scroll]',
+    }
+
+    /**
      * Keyboard shortcut for the lock: Ctrl+Alt+L (Windows/Linux) or
      * Cmd+Alt+L (macOS). Enabled by default; it toggles the current session's
      * lock and only acts while the composer is focused. Deliberately NOT
@@ -98,15 +111,11 @@ window.__ModuleLoader__.load({
     }
 
     function useStoreSnapshot(store) {
-      var state = React.useState(store.getSnapshot())
-      var snapshot = state[0]
-      var setSnapshot = state[1]
-      React.useEffect(function () {
-        return store.subscribe(function () {
-          setSnapshot(store.getSnapshot())
-        })
-      }, [store])
-      return snapshot
+      return React.useSyncExternalStore(
+        store.subscribe,
+        store.getSnapshot,
+        store.getSnapshot
+      )
     }
 
     /* =========================================================================
@@ -243,19 +252,26 @@ window.__ModuleLoader__.load({
         && target.disabled !== true
         && target.readOnly !== true
         && target === document.activeElement
-        && target.closest('[data-composer-card]') !== null
+        && target.closest(SEL.composerCard) !== null
     }
 
     /**
      * True while the composer's candidate menu (slash command / skill /
-     * subagent picker) is open. The official menu is a `role="listbox"`
-     * overlay whose Enter handling is arbitrated by the composer — we must
-     * NOT swallow Enter while it is open, or pressing Enter to confirm a
-     * pick would be blocked by the lock guard.
+     * subagent picker) is open for the composer card owning `target`. The
+     * official menu is a `role="listbox"` overlay whose Enter handling is
+     * arbitrated by the composer — we must NOT swallow Enter while it is
+     * open, or pressing Enter to confirm a pick would be blocked by the lock
+     * guard.
+     *
+     * Scoped to `target`'s own composer card (not the first listbox anywhere
+     * on the page) so that one session's open menu never releases Enter for a
+     * different session's composer.
      */
-    function isSuggestionMenuOpen() {
-      if (typeof document === 'undefined') return false
-      var box = document.querySelector('[role="listbox"]')
+    function isSuggestionMenuOpen(target) {
+      if (typeof document === 'undefined' || !(target instanceof Element)) return false
+      var card = target.closest(SEL.composerCard)
+      if (card === null) return false
+      var box = card.querySelector(SEL.suggestionMenu)
       if (box === null) return false
       // Must be visibly attached (the closed menu renders null, so any
       // listbox in the DOM is an open one).
@@ -265,7 +281,7 @@ window.__ModuleLoader__.load({
     /** Resolve the session id owned by the composer card containing target. */
     function sessionIdFromTarget(target) {
       if (!(target instanceof Element)) return undefined
-      var card = target.closest('[data-composer-card]')
+      var card = target.closest(SEL.composerCard)
       if (card === null) return undefined
       var toggle = card.querySelector('[data-dsh-input-enhancer]')
       if (toggle === null) return undefined
@@ -359,9 +375,9 @@ window.__ModuleLoader__.load({
        * false otherwise.
        */
       function onLockedEnterTap(sessionId) {
-        var count = store.getSnapshot().tapCount + 1
-        store.set(function (s) { return Object.assign({}, s, { tapCount: count }) })
-        if (count >= 3) {
+        var result = advanceTripleTap(store.getSnapshot().tapCount)
+        var count = result.tapCount
+        if (result.complete) {
           var nextSessions = Object.assign({}, store.getSnapshot().sessions)
           delete nextSessions[sessionId]
           store.set(function (s) { return Object.assign({}, s, { sessions: nextSessions, tapCount: 0 }) })
@@ -372,6 +388,7 @@ window.__ModuleLoader__.load({
           if (typeof inputActionsRef === 'function') inputActionsRef()
           return true
         }
+        store.set(function (s) { return Object.assign({}, s, { tapCount: count }) })
         if (tapTimer !== null) clearTimeout(tapTimer)
         tapTimer = setTimeout(resetTap, TRIPLE_TAP_WINDOW_MS)
         return false
@@ -492,7 +509,7 @@ window.__ModuleLoader__.load({
         toggles.forEach(function (toggle) {
           var sessionId = toggle.getAttribute('data-dsh-input-enhancer-session')
           if (sessionId === null || sessionId === undefined) return
-          var card = toggle.closest('[data-composer-card]')
+          var card = toggle.closest(SEL.composerCard)
           if (card === null) return
           if (isLocked(sessionId)) card.setAttribute('data-dsh-composer-enlarged', '')
           else card.removeAttribute('data-dsh-composer-enlarged')
@@ -528,7 +545,7 @@ window.__ModuleLoader__.load({
         // When the slash/skill/subagent candidate menu is open, Enter belongs
         // to the menu's own arbitration (confirm a pick) — never intercept it
         // here, or selecting a command/skill becomes impossible while locked.
-        if (isSuggestionMenuOpen()) return
+        if (isSuggestionMenuOpen(event.target)) return
         if (!isComposerTextarea(event.target)) return
         var sessionId = sessionIdFromTarget(event.target)
         if (sessionId === null || sessionId === undefined || !isLocked(sessionId)) return
@@ -557,8 +574,8 @@ window.__ModuleLoader__.load({
                   var node = added[j]
                   if (!(node instanceof Element)) continue
                   if (
-                    node.matches('[data-composer-card], [data-dsh-input-enhancer]') ||
-                    node.querySelector('[data-composer-card], [data-dsh-input-enhancer]') !== null
+                    node.matches(SEL.composerCard + ', [data-dsh-input-enhancer]') ||
+                    node.querySelector(SEL.composerCard + ', [data-dsh-input-enhancer]') !== null
                   ) {
                     needSync = true
                   }
@@ -638,14 +655,13 @@ window.__ModuleLoader__.load({
         var currentDraft = typeof draft === 'string' ? draft : ''
         var staged = stagedText(sessionId)
         // This is a SWAP, not a directed store/restore: the slot and the
-        // composer always exchange their contents atomically.
-        //   - slot empty   -> composer moves into the slot, composer empties.
-        //   - slot full    -> the two swap: composer's text lands in the slot,
-        //                     the slot's text lands in the composer.
+        // composer always exchange their contents atomically, decided by the
+        // pure `swapResult` core.
+        var next = swapResult(staged, currentDraft)
         if (inputActionsRef && typeof inputActionsRef.setDraft === 'function') {
-          inputActionsRef.setDraft(staged)
+          inputActionsRef.setDraft(next.draft)
         }
-        setStaged(sessionId, currentDraft === '' ? '' : currentDraft)
+        setStaged(sessionId, next.staged)
       }
 
       function setInputActions(actions) {
