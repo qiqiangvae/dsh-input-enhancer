@@ -9,14 +9,12 @@ A **DeepSeek Harness Web plugin** that makes the chat composer better suited to 
 | Feature | What it does | How |
 | --- | --- | --- |
 | 🔒 **Lock Enter-send** | While locked, Enter won't accidentally send; you can keep editing | Click the lock button / `Cmd/Ctrl+Alt+L` |
-| 📏 **Enlarge composer** | Locking grows the composer (`min-height: 40vh`, ceiling `60vh`) for long drafts | Automatic on lock |
 | ⚡ **Triple-Enter send** | Press Enter 3 times (≤800ms apart) to unlock and send immediately | Press Enter while locked |
 | 🔢 **Character count** | A live character-count badge appears after the lock button while non-empty | Automatic |
 | ⚠️ **Long-text warning** | Past 800 characters the badge turns amber, so the length is clear before sending | Automatic |
 | ⇄ **Draft swap** | Swap content between the composer and a staging slot, to park a half-finished draft for a later turn | Click the swap button / `Cmd/Ctrl+Opt+K` |
 
 - **Lock button**: registered in the official `conversation.input.right` slot, near the send button; a prominent red fill when locked, with a state tooltip on hover. It can also be toggled with `Ctrl/Cmd+Alt+L` (only while the composer is focused).
-- **Lock ⇔ enlarge coupling**: locking enters "long-form editing mode"; unlocking restores the default size.
 - **Character count is independent**: it shows whenever the composer is non-empty, locked or not.
 - **Long-text warning**: once the draft reaches the threshold (800 chars by default), the count badge turns amber with a "long text" hover hint.
 - **Per-session state**: each conversation keeps its own lock flag.
@@ -26,12 +24,12 @@ A **DeepSeek Harness Web plugin** that makes the chat composer better suited to 
 | State | Lock icon | Composer | Enter behavior |
 | --- | --- | --- | --- |
 | Unlocked | Gray outlined | Default size | Sends normally |
-| Locked | **Red fill + white lock icon** | **Enlarged** | Does not send (3× Enter unlocks and sends) |
+| Locked | **Red fill + white lock icon** | Default size | Does not send (3× Enter unlocks and sends) |
 
 Tooltip:
 
 - Unlocked: `Unlocked: composer is normal size, Enter sends normally`
-- Locked: `Locked and enlarged: Enter will not send. Press Enter 3 times to unlock and send`
+- Locked: `Locked: Enter will not send. Press Enter 3 times to unlock and send`
 
 ### Triple-Enter (locked-state escape hatch)
 
@@ -59,7 +57,7 @@ While the agent is still thinking or executing, you'll often want to type the ne
 
 ## Guarantees
 
-- **No composer replacement**: intercepts only the keyboard submit path and overlays enlargement styles, keeping the official input state machine, command menu, queue, and attachments.
+- **No composer replacement**: intercepts only the keyboard submit path, keeping the official input state machine, command menu, queue, and attachments.
 - **IME-friendly**: Enter during composition is never intercepted.
 - Blocked while locked: plain `Enter`, `Ctrl+Enter` / `Cmd+Enter`, other Enter combos that reach the official submit path.
 - Preserved: `Shift+Enter` newline, IME candidate confirmation, edit/copy/paste/attachments, and mouse-click send (the lock only guards the keyboard).
@@ -132,7 +130,6 @@ Then restart `dsh web` and refresh the page.
 
 4. While locked:
 
-   - The composer **enlarges** for long-form editing.
    - Plain `Enter` does not send.
    - `Ctrl+Enter` / `Cmd+Enter` does not send.
    - `Shift+Enter` still inserts a newline.
@@ -160,7 +157,6 @@ The plugin is zero-configuration. It requires no API key, no settings fields, an
 - Lock state is browser-memory only; it does not write `settings.yaml` and makes no network requests.
 - The staging slot is likewise browser-memory only (one slot per conversation); it is cleared on refresh/restart, never crosses sessions, and is never written to disk or sent over the network.
 - The plugin uses the official `conversation.input.right` slot and does not replace the composer.
-- Enlargement is implemented via CSS variables (`min-height` and `--dsh-composer-text-max-height`); the official bottom anchor `--dsh-composer-height` re-syncs automatically as the height changes.
 
 ## Troubleshooting
 
@@ -186,11 +182,6 @@ The plugin is zero-configuration. It requires no API key, no settings fields, an
 - `Shift+Enter` inserts a newline; it is not a send.
 - Clicking the official send button is a deliberate mouse action and is not blocked.
 - Check that the lock button shows the red filled locked state and review which Enter combination was pressed.
-
-### The composer did not enlarge while locked
-
-- Make sure the lock button shows the red filled locked state.
-- If another plugin or theme overrides `--dsh-composer-text-max-height` or `[data-composer-card]` `min-height`, this plugin's enlargement may be overridden; check for style conflicts.
 
 ## Uninstall
 
