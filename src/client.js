@@ -860,27 +860,17 @@ window.__ModuleLoader__.load({
         '30%{opacity:1}',
         '100%{transform:translate(var(--dsh-fw-dx),var(--dsh-fw-dy)) scale(.4);opacity:0}',
         '}',
-        // Enlarged composer: raised while locked. The card's extra min-height
-        // must be consumed by the text region, not by dead space above the
-        // tool row — so .scroll absorbs the growth (flex:1) and the tool row
-        // stays pinned to the card bottom. --dsh-composer-text-max-height is
-        // the auto-grow ceiling (336px by default); min-height guarantees the
-        // card is visibly taller immediately on lock. --dsh-composer-height
-        // (the scroll anchor) re-syncs for free via the seat ResizeObserver.
-        '[data-composer-card][data-dsh-composer-enlarged]{',
-        'min-height:40vh;',
-        '--dsh-composer-text-max-height:60vh;',
-        '}',
+        // Locked composer: reserve exactly three lines for editing. The `lh`
+        // unit follows the host's current line-height, so this remains correct
+        // across typography and zoom changes without a fixed px/vh height.
         '[data-composer-card][data-dsh-composer-enlarged] [data-input-scroll]{',
-        'flex:1 1 auto;min-height:0;display:flex;flex-direction:column;',
+        'height:3lh;flex:none;',
         '}',
-        // The textarea is `position:absolute; inset:0` inside .grow, and .grow
-        // is the .scroll's only child: its height would otherwise track the
-        // text content only, leaving dead space below where clicks can't reach
-        // the textarea. Stretch .grow so the focusable area fills the enlarged
-        // .scroll.
+        // The textarea is `position:absolute; inset:0` inside .grow. Make its
+        // containing block fill the three-line scroll region so the whole area
+        // remains focusable, including the blank third line.
         '[data-composer-card][data-dsh-composer-enlarged] [data-input-scroll] > *{',
-        'flex:1 1 auto;min-height:0;',
+        'height:100%;',
         '}',
         // ---- character count badge ----------------------------------------
         '[data-dsh-char-count]{',

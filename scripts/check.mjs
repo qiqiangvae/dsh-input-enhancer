@@ -21,7 +21,7 @@ for (const [name, content, required] of [
   ['Client', client, 'tinyStore'],
   ['Client', client, 'createLockFeature'],
   ['Client', client, 'dsh-input-enhancer-char-count'],
-  ['Client', client, '--dsh-composer-text-max-height'],
+  ['Client', client, 'height:3lh'],
   ['Client', client, 'event.stopImmediatePropagation'],
   ['Client', client, 'event.isComposing || event.keyCode === 229'],
   ['Client', client, 'event.altKey !== true'],
