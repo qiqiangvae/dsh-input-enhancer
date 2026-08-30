@@ -32,6 +32,12 @@ for (const [name, content, required] of [
   ['Client', client, "code === 'KeyK'"],
   ['Client', client, 'dsh-input-enhancer-stage'],
   ['Client', client, 'StageIcon'],
+  // DSH 0.1.2-alpha.1 composer is a Lexical contenteditable host, not a
+  // <textarea>; the guard must detect it and read the draft from the input
+  // store, so assert the compatibility fragments are present in the bundle.
+  ['Client', client, "composerInput: '[data-composer-input]'"],
+  ['Client', client, 'function isComposerInput'],
+  ['Client', client, 'draftReaderRef'],
 ]) {
   if (!content.includes(required)) {
     throw new Error(`${name} bundle is missing required fragment: ${required}`)

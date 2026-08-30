@@ -74,11 +74,11 @@ agent 还在思考/执行时，你往往想先把「下一轮要说的话」打�
 
 ## 环境要求
 
-- DeepSeek Harness `0.1.0-rc.6`（已验证版本）；
+- DeepSeek Harness `0.1.2-alpha.1`（已验证版本；`0.1.0-rc.6` 亦可运行）；
 - `web` profile；
 - 基于 Chromium 的现代浏览器（Chrome / Edge 均可）。
 
-> 本插件通过 `[data-composer-card]`、`[role="listbox"]` 等 DSH 内核内部 DOM 契约工作（源码里集中在 `src/client.js` 顶部的 `SEL` 常量表）。升级 DSH 到更高版本后，若锁定/字数/暂存/候选菜单相关行为异常，请先对这些功能做一次回归，并核对 `SEL` 表中的选择器是否仍与内核一致。
+> 本插件通过 `[data-composer-card]`、`[data-composer-input]`、`[role="listbox"]` 等 DSH 内核内部 DOM 契约工作（源码里集中在 `src/client.js` 顶部的 `SEL` 常量表）。DSH `0.1.2-alpha.1` 把输入框从 `<textarea>` 升级为 Lexical `contenteditable` 宿主（`data-composer-input` / `role="textbox"`），插件已适配；升级 DSH 到更高版本后，若锁定/字数/暂存/候选菜单相关行为异常，请先对这些功能做一次回归，并核对 `SEL` 表中的选择器是否仍与内核一致。
 
 ## 安装
 

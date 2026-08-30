@@ -74,9 +74,19 @@ While the agent is still thinking or executing, you'll often want to type the ne
 
 ## Requirements
 
-- DeepSeek Harness `0.1.0-rc.6` or newer;
+- DeepSeek Harness `0.1.2-alpha.1` or newer (verified; `0.1.0-rc.6` also runs);
 - the `web` profile;
 - a modern Chromium-based browser (Chrome or Edge).
+
+> This plugin works through DSH's internal DOM contract — `[data-composer-card]`,
+> `[data-composer-input]`, `[role="listbox"]` etc. — collected in the `SEL` table
+> at the top of `src/client.js`. DSH `0.1.2-alpha.1` replaced the composer
+> `<textarea>` with a Lexical `contenteditable` host (`data-composer-input` /
+> `role="textbox"`); the plugin has been adapted. After further DSH upgrades, if
+> the lock / char-count / draft-slot / candidate-menu behavior misbehaves, run a
+> regression against those features and check whether the `SEL` selectors still
+> match the core.
+
 
 ## Installation
 
