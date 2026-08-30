@@ -82,7 +82,19 @@ agent 还在思考/执行时，你往往想先把「下一轮要说的话」打�
 
 ## 安装
 
-### 方式一：从本仓库 GitHub 安装
+### 方式一：从 npm 安装
+
+```sh
+dsh plugin --profile web add dsh-input-enhancer
+```
+
+建议锁定到具体版本以保证可重复安装：
+
+```sh
+dsh plugin --profile web add 'dsh-input-enhancer@1.0.5'
+```
+
+### 方式二：从本仓库 GitHub 安装
 
 ```sh
 dsh plugin --profile web add github:qiqiangvae/dsh-input-enhancer
@@ -100,7 +112,7 @@ dsh plugin --profile web add https://github.com/qiqiangvae/dsh-input-enhancer.gi
 dsh plugin --profile web add 'github:qiqiangvae/dsh-input-enhancer#<commit-sha>'
 ```
 
-### 方式二：从本地目录安装
+### 方式三：从本地目录安装
 
 ```sh
 git clone https://github.com/qiqiangvae/dsh-input-enhancer.git

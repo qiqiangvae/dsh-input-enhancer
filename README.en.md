@@ -90,6 +90,18 @@ While the agent is still thinking or executing, you'll often want to type the ne
 
 ## Installation
 
+### Install from npm
+
+```sh
+dsh plugin --profile web add dsh-input-enhancer
+```
+
+For reproducible installs, pin to a specific version:
+
+```sh
+dsh plugin --profile web add 'dsh-input-enhancer@1.0.5'
+```
+
 ### Install from this GitHub repository
 
 ```sh
