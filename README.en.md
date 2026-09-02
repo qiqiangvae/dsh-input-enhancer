@@ -12,11 +12,13 @@ A **DeepSeek Harness Web plugin** that makes the chat composer better suited to 
 | ⚡ **Triple-Enter send** | Press Enter 3 times (≤800ms apart) to unlock and send immediately | Press Enter while locked |
 | 🔢 **Character count** | A live character-count badge appears after the lock button while non-empty | Automatic |
 | ⚠️ **Long-text warning** | Past 800 characters the badge turns amber, so the length is clear before sending | Automatic |
+| 🔐 **Auto-lock / unlock** | Past 80 characters the composer auto-locks; clearing the composer auto-unlocks | Automatic |
 | ⇄ **Draft swap** | Swap content between the composer and a staging slot, to park a half-finished draft for a later turn | Click the swap button / `Cmd/Ctrl+Opt+K` |
 
 - **Lock button**: registered in the official `conversation.input.right` slot, near the send button; a prominent red fill when locked, with a state tooltip on hover. It can also be toggled with `Ctrl/Cmd+Alt+L` (only while the composer is focused).
 - **Character count is independent**: it shows whenever the composer is non-empty, locked or not.
 - **Long-text warning**: once the draft reaches the threshold (800 chars by default), the count badge turns amber with a "long text" hover hint.
+- **Auto-lock / unlock**: on by default (source constants `AUTO_LOCK_ENABLED` / `AUTO_LOCK_THRESHOLD`). The composer locks the moment the length crosses from `≤80` up to `>80` (rising edge), and unlocks when the draft is fully cleared (length back to zero). The lock has no "manual vs automatic" source distinction — once it is on, it is on; the two length edges simply add and remove it. Shrinking to a non-empty length or hovering around 80 leaves the lock untouched, and after a clear-then-unlock, typing past 80 again re-locks. This `80`-lock is independent of the `800` warning above.
 - **Per-session state**: each conversation keeps its own lock flag.
 
 ### Lock state & composer
@@ -179,6 +181,7 @@ The plugin is zero-configuration. It requires no API key, no settings fields, an
 - Lock state is browser-memory only; it does not write `settings.yaml` and makes no network requests.
 - The staging slot is likewise browser-memory only (one slot per conversation); it is cleared on refresh/restart, never crosses sessions, and is never written to disk or sent over the network.
 - The plugin uses the official `conversation.input.right` slot and does not replace the composer.
+- Auto lock/unlock is driven only by the two length edges: crossing past 80 upward locks, clearing the composer to zero unlocks; any intermediate length leaves the lock state unchanged.
 
 ## Troubleshooting
 
@@ -255,6 +258,7 @@ Compared with `dsh-enter-lock`, this plugin adds:
 - **Triple-Enter send**: press Enter 3 times to unlock and send immediately (with count flashes and an unlock-burst animation);
 - **Character count**: a live character count, independent of the lock;
 - **Long-text warning**: past 800 characters the badge turns amber;
+- **Auto-lock / unlock**: past 80 characters the composer locks on the rising length edge, and clearing the composer unlocks it;
 - **Draft swap**: a ⇄ swap button + `Cmd/Ctrl+Opt/Alt+K` to exchange half-finished drafts between the composer and a staging slot (one slot per conversation, in-memory).
 
 ## License

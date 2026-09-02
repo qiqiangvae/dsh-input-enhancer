@@ -16,6 +16,14 @@
  *    the atomic slot⇄composer exchange. Empty slot stages the draft (composer
  *    empties); full slot swaps the two (nothing is lost). The returned `staged`
  *    is what the slot holds next; `draft` is what the composer should show.
+ *  - `shouldAutoLock(prevLen, nextLen, threshold)` → `boolean`: the rising-edge
+ *    detector for auto-lock. True only on the crossing from `<= threshold` to
+ *    `> threshold` — i.e. one-shot on the upward edge, never while already
+ *    above nor on any downward move.
+ *  - `shouldAutoUnlock(prevLen, nextLen)` → `boolean`: the falling-edge detector
+ *    for auto-unlock. True only when the draft empties completely — from any
+ *    non-zero length back to zero. The composer never stays locked when the
+ *    text has been cleared.
  *
  * @module dsh-input-enhancer/core
  */
@@ -45,4 +53,38 @@ export function swapResult(stagedText, currentDraft) {
   const staged = typeof stagedText === 'string' ? stagedText : ''
   const draft = typeof currentDraft === 'string' ? currentDraft : ''
   return { staged: draft, draft: staged }
+}
+
+/**
+ * Rising-edge detector for auto-lock: true exactly when the draft length
+ * crosses from `<= threshold` up to `> threshold` (a strict `>` comparison).
+ * False while already above the threshold, and false on any downward move —
+ * auto-lock only ever *adds* the lock at the moment of crossing. Callers keep
+ * `prevLen` per session so the edge is tracked independently per conversation.
+ * @param {number} prevLen previous draft length
+ * @param {number} nextLen current draft length
+ * @param {number} threshold lock threshold (auto-lock when nextLen > threshold)
+ * @returns {boolean}
+ */
+export function shouldAutoLock(prevLen, nextLen, threshold) {
+  const prev = typeof prevLen === 'number' ? prevLen : 0
+  const next = typeof nextLen === 'number' ? nextLen : 0
+  const thr = typeof threshold === 'number' ? threshold : 0
+  return prev <= thr && next > thr
+}
+
+/**
+ * Falling-edge detector for auto-unlock: true exactly when the draft emptied —
+ * from any non-zero length back to zero. This is the single auto-unlock trigger;
+ * shrinking to a smaller non-zero length keeps the lock. The lock has no
+ * "manual vs automatic" source distinction: once it is on, clearing the composer
+ * releases it regardless of how it was acquired.
+ * @param {number} prevLen previous draft length
+ * @param {number} nextLen current draft length
+ * @returns {boolean}
+ */
+export function shouldAutoUnlock(prevLen, nextLen) {
+  const prev = typeof prevLen === 'number' ? prevLen : 0
+  const next = typeof nextLen === 'number' ? nextLen : 0
+  return prev > 0 && next === 0
 }
