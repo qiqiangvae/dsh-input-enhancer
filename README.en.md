@@ -101,7 +101,7 @@ dsh plugin --profile web add dsh-input-enhancer
 For reproducible installs, pin to a specific version:
 
 ```sh
-dsh plugin --profile web add 'dsh-input-enhancer@1.0.5'
+dsh plugin --profile web add 'dsh-input-enhancer@1.1.0'
 ```
 
 ### Install from this GitHub repository

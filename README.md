@@ -93,7 +93,7 @@ dsh plugin --profile web add dsh-input-enhancer
 建议锁定到具体版本以保证可重复安装：
 
 ```sh
-dsh plugin --profile web add 'dsh-input-enhancer@1.0.5'
+dsh plugin --profile web add 'dsh-input-enhancer@1.1.0'
 ```
 
 ### 方式二：从本仓库 GitHub 安装
